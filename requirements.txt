@@ -1,3 +1,12 @@
-flask>=3.0.0
-pymongo[srv]>=4.6.0
-gunicorn
+
+# Web Framework
+Flask==3.0.3
+
+# Database
+pymongo[srv]==4.6.3
+
+# Environment Variables
+python-dotenv==1.0.1
+
+# WSGI Server (Recommended for production)
+gunicorn==21.2.0
