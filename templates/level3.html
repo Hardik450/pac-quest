@@ -1,0 +1,50 @@
+{% extends "level_base.html" %}
+{% block title %}Level 3 | PAC-HUNT{% endblock %}
+{% block level_title %}THE ARCHIVES OF TIME{% endblock %}
+{% block answer_label %}ENTER THE WORD FROM THE PAST:{% endblock %}
+
+{% block level_body %}
+<div class="story-box" style="text-align:center;margin-bottom:30px;">
+    <p style="font-size:.7rem;color:#888;line-height:2;">
+        The next fragment is hidden in the past…<br>
+        Where every change is remembered, but not always seen.
+    </p>
+</div>
+
+<div class="riddle-box maze-border">
+    <p class="riddle-text">
+        "In the realm where code is <span class="riddle-emphasis">born</span> and <span class="riddle-emphasis">reborn</span>,<br>
+        A cat with eight legs guards the kingdom.<br><br>
+        The present shows one truth,<br>
+        But the <span class="riddle-emphasis">past holds another</span>.<br><br>
+        <span style="color:var(--pacman-yellow);">Dig through the history of changes,</span><br>
+        <span style="color:var(--pacman-yellow);">And you shall find what was once there.</span>"
+    </p>
+</div>
+
+<div class="tutorial-box">
+    <h4 class="tutorial-title">About Git &amp; GitHub</h4>
+    <ul class="tutorial-steps">
+        <li>GitHub is where developers store and share code</li>
+        <li>Every change made to code is saved as a "commit"</li>
+        <li>You can view the history of all commits on any repository</li>
+        <li>Sometimes, secrets are hidden in <strong>older commits</strong> that have since been changed</li>
+        <li>Look for the "commits" or "history" section on GitHub!</li>
+    </ul>
+</div>
+
+<div class="action-buttons">
+    <a href="https://github.com/pushkar-hue/Tale-of-Time/tree/main"
+       target="_blank" class="btn btn-primary">🐙 VISIT THE REPOSITORY</a>
+</div>
+
+<div class="hint-container">
+    <button class="btn btn-hint hint-btn" data-hint="1">💡 HINT 1 (FREE)</button>
+    <button class="btn btn-hint hint-btn" data-hint="2">💡 HINT 2 (-30 SEC)</button>
+    <button class="btn btn-hint hint-btn" data-hint="3">💡 HINT 3 (-60 SEC)</button>
+
+    <div class="hint-text" id="hint1">The octopus cat is GitHub! Look for a link to a GitHub repository.</div>
+    <div class="hint-text" id="hint2">On GitHub, find the "commits" section (look for a clock icon or text saying "X commits"). Click it to see the history.</div>
+    <div class="hint-text" id="hint3">Click on an older commit to see what the README file looked like before. The secret word was removed but is visible in the history!</div>
+</div>
+{% endblock %}

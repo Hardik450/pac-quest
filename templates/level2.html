@@ -1,0 +1,49 @@
+{% extends "level_base.html" %}
+{% block title %}Level 2 | PAC-HUNT{% endblock %}
+{% block level_title %}THE BROKEN FRAME{% endblock %}
+{% block answer_label %}WHAT WORD IS HIDDEN IN THE IMAGE?{% endblock %}
+
+{% block level_body %}
+<div class="story-box" style="text-align:center;margin-bottom:30px;">
+    <p style="font-size:.7rem;color:#888;line-height:2;">
+        Not everything on the web is as it appears...<br>
+        Sometimes what seems broken holds hidden meaning.
+    </p>
+</div>
+
+<div class="riddle-box maze-border">
+    <p class="riddle-text">
+        "A picture speaks a thousand words,<br>
+        But what of one that <span class="riddle-emphasis">refuses to appear</span>?<br><br>
+        The eyes see nothing but emptiness,<br>
+        Yet beneath the <span class="riddle-emphasis">surface</span>, truth remains.<br><br>
+        <span style="color:var(--pacman-yellow);">Look not at what is shown,</span><br>
+        <span style="color:var(--pacman-yellow);">But at how it's written.</span>"
+    </p>
+</div>
+
+<div class="puzzle-image-container">
+    <p style="font-size:.7rem;color:var(--ghost-cyan);margin-bottom:15px;">Here's an important image… or is it?</p>
+    <!-- THE SECRET IS IN THE SRC ATTRIBUTE -->
+    <img src="GIVE.png" alt="If you can read this, you're on the right track!"
+         id="secretImage"
+         style="width:300px;height:200px;border:3px dashed #333;background:#111;display:block;margin:0 auto;">
+    <p style="font-size:.6rem;color:#444;margin-top:15px;">Hmm, the image won't load… How strange 🤔</p>
+</div>
+
+<div class="hint-container">
+    <button class="btn btn-hint hint-btn" data-hint="1">💡 HINT 1 (FREE)</button>
+    <button class="btn btn-hint hint-btn" data-hint="2">💡 HINT 2 (-30 SEC)</button>
+    <button class="btn btn-hint hint-btn" data-hint="3">💡 HINT 3 (-60 SEC)</button>
+
+    <div class="hint-text" id="hint1">
+        The image above doesn't load… but the browser still knows where it's TRYING to load from. Inspect the image element!
+    </div>
+    <div class="hint-text" id="hint2">
+        Right-click on the broken image → Inspect. Look at the HTML code. Find the "src" attribute — it contains the filename.
+    </div>
+    <div class="hint-text" id="hint3">
+        The src attribute shows: src="GIVE.png" — The word is the filename without the extension!
+    </div>
+</div>
+{% endblock %}

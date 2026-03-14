@@ -1,0 +1,45 @@
+{% extends "level_base.html" %}
+{% block title %}Level 1 | PAC-HUNT{% endblock %}
+{% block level_title %}THE WHISPERING VOID{% endblock %}
+
+{% block level_body %}
+<div class="story-box" style="text-align:center;margin-bottom:30px;">
+    <p style="font-size:.7rem;color:#888;line-height:2;">
+        The first fragment of the secret phrase is hidden in a place 
+        where only those who know where to look can find it...
+    </p>
+</div>
+
+<div class="riddle-box maze-border">
+    <p class="riddle-text">
+        "I am the <span class="riddle-emphasis">voice</span> that speaks to developers,<br>
+        Hidden in plain sight, yet <span class="riddle-emphasis">invisible</span> to most.<br>
+        When errors cry out, I catch their tears.<br>
+        When secrets need telling, I whisper them here.<br><br>
+        <span style="color:var(--pacman-yellow);">Find the page that doesn't exist,</span><br>
+        <span style="color:var(--pacman-yellow);">And listen to what it has to say.</span>"
+    </p>
+</div>
+
+<div class="action-buttons">
+    <a href="{{ url_for('oops') }}" class="btn btn-primary">🚪 ENTER THE VOID</a>
+</div>
+
+<div class="hint-container">
+    <button class="btn btn-hint hint-btn" data-hint="1">💡 HINT 1 (FREE)</button>
+    <button class="btn btn-hint hint-btn" data-hint="2">💡 HINT 2 (-30 SEC)</button>
+    <button class="btn btn-hint hint-btn" data-hint="3">💡 HINT 3 (-60 SEC)</button>
+
+    <div class="hint-text" id="hint1">
+        The page you're looking for shows an error… a very specific error code that web developers know well.
+    </div>
+    <div class="hint-text" id="hint2">
+        Once you're on the error page, open the Developer Console.
+        In Chrome: Right-click → Inspect → Console tab
+    </div>
+    <div class="hint-text" id="hint3">
+        The word you're looking for is printed in the Console.
+        It's yellow text that says "The secret word is: ____"
+    </div>
+</div>
+{% endblock %}

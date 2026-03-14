@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block head %}
+<style>
+/* Server-driven timer colour helpers applied by JS */
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- HUD -->
+<div class="game-hud">
+    <div class="hud-section">
+        <span class="hud-label">LIVES</span>
+        <div class="lives" id="lives"></div>
+    </div>
+    <div class="hud-section">
+        <span class="hud-label">TIME</span>
+        <span class="timer" id="timer">05:00</span>
+    </div>
+    <div class="hud-section">
+        <span class="hud-label">LEVEL</span>
+        <div class="level-indicator" id="levelIndicator"></div>
+    </div>
+</div>
+
+<!-- Level Content -->
+<div class="level-container maze-border">
+    <div class="level-header">
+        <p class="level-number">LEVEL {{ level_num }} OF {{ total_levels }}</p>
+        <h2 class="level-title">{% block level_title %}{% endblock %}</h2>
+    </div>
+
+    <!-- Collected Words -->
+    <div class="collected-display">
+        <span class="collected-label">COLLECTED FRAGMENTS:</span>
+        <div class="collected-words-shuffled" id="collectedDisplay"></div>
+    </div>
+
+    {% block level_body %}{% endblock %}
+
+    <!-- Answer Section -->
+    <div class="answer-section">
+        <label class="answer-label">{% block answer_label %}ENTER THE WORD YOU FOUND:{% endblock %}</label>
+        <div class="answer-input-group">
+            <input type="text" id="answerInput" class="answer-input"
+                   placeholder="?????" maxlength="10" autocomplete="off">
+            <button id="submitAnswer" class="submit-btn">SUBMIT</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal maze-border">
+        <h3 class="modal-title" id="modalTitle"></h3>
+        <p class="modal-text" id="modalText"></p>
+        <button class="btn btn-primary" id="modalBtn">CONTINUE</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Bootstrap HUD from server-rendered values
+const INIT_STATE = {
+    lives:          {{ lives }},
+    time_remaining: {{ time_remaining }},
+    current_level:  {{ level_num }},
+    total_levels:   {{ total_levels }},
+    collected_words: {{ collected_words | tojson }},
+};
+window.PH_LEVEL = {{ level_num }};
+initHUD(INIT_STATE);
+startClientTimer(INIT_STATE.time_remaining);
+</script>
+{% block level_scripts %}{% endblock %}
+{% endblock %}

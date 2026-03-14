@@ -1,0 +1,56 @@
+<!-- templates/admin_login.html -->
+{% extends "base.html" %}
+{% block title %}Admin Login | PAC-HUNT{% endblock %}
+
+{% block body %}
+<div class="landing-container">
+    <h1 class="game-title" style="font-size:2rem;">🔒 ADMIN</h1>
+    <p class="subtitle">PAC-HUNT CONTROL PANEL</p>
+
+    <div class="maze-border" style="max-width:450px;width:100%;margin:40px auto;padding:35px;">
+        <h3 style="color:var(--ghost-cyan);font-size:.75rem;margin-bottom:25px;">ENTER ADMIN PASSWORD</h3>
+
+        <div style="margin-bottom:20px;">
+            <input type="password" id="adminPassword"
+                   class="answer-input" style="width:100%;text-align:left;font-size:.7rem;"
+                   placeholder="Password" maxlength="50" autocomplete="off">
+        </div>
+
+        <div id="loginError" style="display:none;color:var(--ghost-red);font-size:.55rem;margin-bottom:15px;padding:10px;background:rgba(255,0,0,.1);border:1px solid var(--ghost-red);border-radius:4px;"></div>
+
+        <button id="loginBtn" class="submit-btn" style="width:100%;font-size:.8rem;padding:18px;">
+            LOGIN 🔑
+        </button>
+    </div>
+
+    <a href="{{ url_for('index') }}" style="color:#666;font-size:.5rem;text-decoration:none;">← Back to game</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('loginBtn').addEventListener('click', async () => {
+    const password = document.getElementById('adminPassword').value;
+    const errEl = document.getElementById('loginError');
+    errEl.style.display = 'none';
+
+    const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ password })
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+        window.location.href = data.redirect;
+    } else {
+        errEl.textContent = data.error || 'Invalid password';
+        errEl.style.display = 'block';
+    }
+});
+
+document.getElementById('adminPassword').addEventListener('keypress', e => {
+    if (e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+</script>
+{% endblock %}

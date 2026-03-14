@@ -1,0 +1,151 @@
+<!-- templates/waiting.html -->
+{% extends "base.html" %}
+{% block title %}Waiting Room | PAC-HUNT{% endblock %}
+
+{% block body %}
+<div class="landing-container">
+    <h1 class="game-title" style="font-size:2rem;">PAC-HUNT</h1>
+    <p class="subtitle">WAITING ROOM</p>
+
+    <div class="pacman-container">
+        <div class="pacman"></div>
+        <div class="dots">
+            <div class="dot"></div><div class="dot"></div>
+            <div class="dot"></div><div class="dot"></div>
+        </div>
+    </div>
+
+    <div style="font-size:.6rem;color:var(--ghost-cyan);margin-bottom:20px;">
+        Logged in as: <span style="color:var(--pacman-yellow);">{{ username }}</span>
+    </div>
+
+    <!-- Status display -->
+    <div class="maze-border" style="max-width:600px;width:100%;margin:20px auto;padding:35px;text-align:center;">
+        <div id="statusIcon" style="font-size:4rem;margin-bottom:20px;">
+            {% if event_status == 'paused' %}⏸️{% elif event_status == 'finished' %}🏁{% else %}⏳{% endif %}
+        </div>
+
+        <div id="statusBadge" style="margin-bottom:20px;">
+            {% if event_status == 'waiting' %}
+            <span style="font-size:.7rem;padding:8px 20px;background:rgba(255,255,0,.1);border:2px solid var(--pacman-yellow);color:var(--pacman-yellow);border-radius:20px;display:inline-block;">
+                ● WAITING TO START
+            </span>
+            {% elif event_status == 'paused' %}
+            <span style="font-size:.7rem;padding:8px 20px;background:rgba(255,165,0,.1);border:2px solid var(--ghost-orange);color:var(--ghost-orange);border-radius:20px;display:inline-block;">
+                ● EVENT PAUSED
+            </span>
+            {% elif event_status == 'finished' %}
+            <span style="font-size:.7rem;padding:8px 20px;background:rgba(0,255,255,.1);border:2px solid var(--ghost-cyan);color:var(--ghost-cyan);border-radius:20px;display:inline-block;">
+                ● EVENT FINISHED
+            </span>
+            {% endif %}
+        </div>
+
+        <p id="eventMessage" style="font-size:.7rem;color:#ccc;line-height:2.2;margin:20px 0;">
+            {{ event_message }}
+        </p>
+
+        <div id="playerCount" style="margin:20px 0;">
+            <span style="font-size:.6rem;color:var(--ghost-pink);">
+                🎮 <span id="countNum">...</span> hunters registered
+            </span>
+        </div>
+
+        <!-- Animated waiting dots -->
+        <div id="waitingAnimation" style="margin:30px 0;">
+            <div class="ghosts" style="justify-content:center;">
+                <div class="ghost blinky" style="width:35px;height:42px;border-radius:17px 17px 0 0;">
+                    <div class="ghost-eyes" style="top:10px;">
+                        <div class="ghost-eye" style="width:8px;height:10px;"><div style="width:4px;height:4px;"></div></div>
+                        <div class="ghost-eye" style="width:8px;height:10px;"><div style="width:4px;height:4px;"></div></div>
+                    </div>
+                </div>
+                <div class="ghost pinky" style="width:35px;height:42px;border-radius:17px 17px 0 0;">
+                    <div class="ghost-eyes" style="top:10px;">
+                        <div class="ghost-eye" style="width:8px;height:10px;"><div style="width:4px;height:4px;"></div></div>
+                        <div class="ghost-eye" style="width:8px;height:10px;"><div style="width:4px;height:4px;"></div></div>
+                    </div>
+                </div>
+                <div class="ghost inky" style="width:35px;height:42px;border-radius:17px 17px 0 0;">
+                    <div class="ghost-eyes" style="top:10px;">
+                        <div class="ghost-eye" style="width:8px;height:10px;"><div style="width:4px;height:4px;"></div></div>
+                        <div class="ghost-eye" style="width:8px;height:10px;"><div style="width:4px;height:4px;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="blink" style="font-size:.55rem;color:var(--ghost-cyan);" id="waitText">
+            Waiting for host to start the event...
+        </p>
+    </div>
+
+    <div style="display:flex;gap:15px;flex-wrap:wrap;justify-content:center;margin-top:20px;">
+        <a href="{{ url_for('leaderboard') }}" style="color:var(--ghost-orange);font-size:.6rem;text-decoration:none;">🏆 VIEW LEADERBOARD</a>
+        <a href="#" id="logoutLink" style="color:var(--ghost-red);font-size:.6rem;text-decoration:none;">[LOGOUT]</a>
+    </div>
+
+    <p style="margin-top:30px;font-size:.5rem;color:#666;">Made with 💛 by GDG ACEIT</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let pollInterval = null;
+
+function pollEventStatus() {
+    fetch('/api/event/status')
+        .then(r => r.json())
+        .then(data => {
+            if (!data.ok) return;
+
+            // Update player count
+            const countEl = document.getElementById('countNum');
+            if (countEl) countEl.textContent = data.player_count || 0;
+
+            // Update message
+            const msgEl = document.getElementById('eventMessage');
+            if (msgEl && data.message) msgEl.textContent = data.message;
+
+            // If event just became active — redirect to game!
+            if (data.active) {
+                clearInterval(pollInterval);
+                document.getElementById('statusIcon').textContent = '🚀';
+                document.getElementById('waitText').textContent = 'EVENT STARTED! Redirecting...';
+                document.getElementById('waitText').style.color = '#00ff00';
+                document.getElementById('statusBadge').innerHTML =
+                    '<span style="font-size:.7rem;padding:8px 20px;background:rgba(0,255,0,.2);border:2px solid #00ff00;color:#00ff00;border-radius:20px;display:inline-block;">● EVENT ACTIVE — GO!</span>';
+
+                // Brief delay so players see the "GO" message
+                setTimeout(() => {
+                    window.location.href = '{{ url_for("index") }}';
+                }, 1500);
+            }
+
+            // Update status badge for paused/finished
+            if (data.status === 'paused') {
+                document.getElementById('statusIcon').textContent = '⏸️';
+                document.getElementById('waitText').textContent = 'Event paused by host...';
+            } else if (data.status === 'finished') {
+                document.getElementById('statusIcon').textContent = '🏁';
+                document.getElementById('waitText').textContent = 'Event has ended!';
+                document.getElementById('waitText').classList.remove('blink');
+            }
+        })
+        .catch(err => console.error('Poll failed:', err));
+}
+
+// Poll every 2 seconds
+pollInterval = setInterval(pollEventStatus, 2000);
+// Initial poll
+pollEventStatus();
+
+document.getElementById('logoutLink')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const res = await fetch('/api/logout', { method: 'POST',
+        headers: {'Content-Type':'application/json'}, body: '{}' });
+    const data = await res.json();
+    window.location.href = data.redirect;
+});
+</script>
+{% endblock %}

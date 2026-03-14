@@ -1,0 +1,911 @@
+/* ============================================
+   PAC-HUNT v2 - Retro Arcade Theme
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+    --pacman-yellow: #FFFF00;
+    --ghost-red: #FF0000;
+    --ghost-pink: #FFB8FF;
+    --ghost-cyan: #00FFFF;
+    --ghost-orange: #FFB852;
+    --maze-blue: #2121DE;
+    --bg-black: #000000;
+    --dot-white: #FFFF00;
+    --text-glow: 0 0 10px #FFFF00, 0 0 20px #FFFF00, 0 0 30px #FFFF00;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Press Start 2P', cursive;
+    background-color: var(--bg-black);
+    color: white;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Animated Background with Dots */
+.game-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-image:
+        radial-gradient(circle, var(--dot-white) 3px, transparent 3px);
+    background-size: 40px 40px;
+    opacity: 0.1;
+    animation: moveDots 20s linear infinite;
+}
+
+@keyframes moveDots {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+}
+
+/* Maze Border Effect */
+.maze-border {
+    border: 4px solid var(--maze-blue);
+    box-shadow:
+        inset 0 0 20px rgba(33, 33, 222, 0.5),
+        0 0 20px rgba(33, 33, 222, 0.5);
+    border-radius: 10px;
+}
+
+/* ============================================
+   Landing Page Styles
+   ============================================ */
+
+.landing-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    text-align: center;
+}
+
+.game-title {
+    font-size: 3rem;
+    color: var(--pacman-yellow);
+    text-shadow: var(--text-glow);
+    margin-bottom: 20px;
+    animation: flicker 2s infinite;
+}
+
+@keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: var(--ghost-cyan);
+    margin-bottom: 40px;
+    letter-spacing: 2px;
+}
+
+/* Pac-Man Animation */
+.pacman-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 40px 0;
+    overflow: hidden;
+    width: 300px;
+}
+
+.pacman {
+    width: 60px;
+    height: 60px;
+    background: var(--pacman-yellow);
+    border-radius: 50%;
+    position: relative;
+    animation: eat 0.5s infinite;
+}
+
+.pacman::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 50%;
+    height: 50%;
+    background: var(--bg-black);
+    transform-origin: left center;
+    animation: mouth 0.5s infinite;
+}
+
+@keyframes mouth {
+    0%, 100% {
+        clip-path: polygon(0 0, 100% 50%, 0 100%);
+    }
+    50% {
+        clip-path: polygon(0 20%, 100% 50%, 0 80%);
+    }
+}
+
+.dots {
+    display: flex;
+    gap: 15px;
+    margin-left: 20px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    background: var(--dot-white);
+    border-radius: 50%;
+    animation: blink 1s infinite;
+}
+
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+.dot:nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Ghost Decorations */
+.ghosts {
+    display: flex;
+    gap: 30px;
+    margin: 30px 0;
+}
+
+.ghost {
+    width: 50px;
+    height: 60px;
+    border-radius: 25px 25px 0 0;
+    position: relative;
+    animation: float 2s ease-in-out infinite;
+}
+
+.ghost::before {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: inherit;
+    clip-path: polygon(
+        0% 0%, 20% 100%, 40% 0%, 60% 100%, 80% 0%, 100% 100%, 100% 0%
+    );
+}
+
+.ghost.blinky { background: var(--ghost-red); }
+.ghost.pinky { background: var(--ghost-pink); animation-delay: 0.5s; }
+.ghost.inky { background: var(--ghost-cyan); animation-delay: 1s; }
+.ghost.clyde { background: var(--ghost-orange); animation-delay: 1.5s; }
+
+.ghost-eyes {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+}
+
+.ghost-eye {
+    width: 12px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    position: relative;
+}
+
+.ghost-eye::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: blue;
+    border-radius: 50%;
+    top: 4px;
+    left: 3px;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Start Button */
+.start-btn {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1.2rem;
+    padding: 20px 40px;
+    background: transparent;
+    color: var(--pacman-yellow);
+    border: 4px solid var(--pacman-yellow);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    position: relative;
+    overflow: hidden;
+}
+
+.start-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--pacman-yellow);
+    transition: left 0.3s ease;
+    z-index: -1;
+}
+
+.start-btn:hover {
+    color: var(--bg-black);
+}
+
+.start-btn:hover::before {
+    left: 0;
+}
+
+.start-btn:active {
+    transform: scale(0.95);
+}
+
+/* Blinking Text */
+.blink {
+    animation: textBlink 1s infinite;
+}
+
+@keyframes textBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* ============================================
+   Game HUD Styles
+   ============================================ */
+
+.game-hud {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.9);
+    border-bottom: 3px solid var(--maze-blue);
+    z-index: 1000;
+}
+
+.hud-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hud-label {
+    font-size: 0.7rem;
+    color: var(--ghost-cyan);
+}
+
+.hud-value {
+    font-size: 1rem;
+    color: var(--pacman-yellow);
+}
+
+/* Lives Display */
+.lives {
+    display: flex;
+    gap: 5px;
+}
+
+.life {
+    width: 20px;
+    height: 20px;
+    background: var(--pacman-yellow);
+    border-radius: 50%;
+    clip-path: polygon(
+        100% 50%,
+        50% 50%,
+        25% 6.7%,
+        0% 50%,
+        25% 93.3%,
+        50% 50%
+    );
+    transition: all 0.3s ease;
+}
+
+.life.lost {
+    background: #333;
+    opacity: 0.3;
+}
+
+/* Timer */
+.timer {
+    font-size: 1.5rem;
+    color: var(--pacman-yellow);
+}
+
+.timer.warning {
+    color: var(--ghost-orange);
+    animation: pulse 0.5s infinite;
+}
+
+.timer.danger {
+    color: var(--ghost-red);
+    animation: pulse 0.25s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Level Indicator */
+.level-indicator {
+    display: flex;
+    gap: 8px;
+}
+
+.level-dot {
+    width: 15px;
+    height: 15px;
+    border: 2px solid var(--maze-blue);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.level-dot.active {
+    background: var(--ghost-cyan);
+    border-color: var(--ghost-cyan);
+    box-shadow: 0 0 10px var(--ghost-cyan);
+}
+
+.level-dot.completed {
+    background: var(--pacman-yellow);
+    border-color: var(--pacman-yellow);
+}
+
+/* ============================================
+   Level Container Styles
+   ============================================ */
+
+.level-container {
+    max-width: 900px;
+    margin: 100px auto 40px;
+    padding: 40px;
+}
+
+.level-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.level-number {
+    font-size: 0.9rem;
+    color: var(--ghost-cyan);
+    margin-bottom: 10px;
+}
+
+.level-title {
+    font-size: 1.5rem;
+    color: var(--pacman-yellow);
+    text-shadow: var(--text-glow);
+    margin-bottom: 20px;
+}
+
+/* Riddle Box */
+.riddle-box {
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+    padding: 30px;
+    margin: 30px 0;
+    position: relative;
+}
+
+.riddle-box::before {
+    content: '?';
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    font-size: 2rem;
+    color: var(--ghost-pink);
+    text-shadow: 0 0 10px var(--ghost-pink);
+}
+
+.riddle-text {
+    font-size: 0.75rem;
+    line-height: 2.5;
+    color: #ddd;
+    text-align: center;
+}
+
+.riddle-emphasis {
+    color: var(--ghost-cyan);
+    text-decoration: underline;
+}
+
+/* Tutorial Box */
+.tutorial-box {
+    background: rgba(0,255,255,0.05);
+    border: 2px dashed var(--ghost-cyan);
+    padding: 20px 25px;
+    margin: 25px 0;
+    border-radius: 8px;
+}
+
+.tutorial-title {
+    color: var(--ghost-cyan);
+    font-size: .75rem;
+    margin-bottom: 15px;
+}
+
+.tutorial-title::before {
+    content: '💡';
+    font-size: 1.2rem;
+    margin-right: 10px;
+}
+
+.tutorial-steps {
+    list-style: none;
+    padding: 0;
+}
+
+.tutorial-steps li {
+    font-size: .6rem;
+    color: #ccc;
+    margin: 10px 0;
+    padding-left: 15px;
+    position: relative;
+    line-height: 1.8;
+}
+
+.tutorial-steps li::before {
+    content: '►';
+    color: var(--pacman-yellow);
+    position: absolute;
+    left: 0;
+}
+
+.key-hint {
+    background: #222;
+    border: 1px solid #555;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: .55rem;
+    color: var(--pacman-yellow);
+}
+
+/* Buttons */
+.btn {
+    font-family: 'Press Start 2P', cursive;
+    padding: 12px 24px;
+    cursor: pointer;
+    font-size: .65rem;
+    text-decoration: none;
+    display: inline-block;
+    transition: all .2s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: var(--pacman-yellow);
+    color: var(--bg-black);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 0 20px var(--pacman-yellow);
+    transform: scale(1.03);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--ghost-cyan);
+    border: 2px solid var(--ghost-cyan);
+}
+
+.btn-secondary:hover {
+    background: var(--ghost-cyan);
+    color: #000;
+}
+
+.btn-hint {
+    background: transparent;
+    color: var(--ghost-pink);
+    border: 2px solid var(--ghost-pink);
+    margin: 5px;
+    font-size: .55rem;
+    padding: 8px 16px;
+}
+
+.btn-hint:hover {
+    background: rgba(255,184,255,.15);
+}
+
+.action-buttons {
+    text-align: center;
+    margin: 25px 0;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Answer section */
+.answer-section {
+    margin: 30px 0;
+    text-align: center;
+}
+
+.answer-label {
+    display: block;
+    font-size: .6rem;
+    color: var(--ghost-cyan);
+    margin-bottom: 15px;
+}
+
+.answer-input-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.answer-input {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1rem;
+    padding: 15px 20px;
+    background: #111;
+    border: 3px solid var(--maze-blue);
+    color: var(--pacman-yellow);
+    text-transform: uppercase;
+    text-align: center;
+    width: 200px;
+}
+
+.answer-input:focus {
+    outline: none;
+    border-color: var(--pacman-yellow);
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+}
+
+.answer-input::placeholder {
+    color: #444;
+    font-size: 0.7rem;
+}
+
+.submit-btn {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    padding: 15px 30px;
+    background: var(--pacman-yellow);
+    color: var(--bg-black);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--pacman-yellow);
+}
+
+/* Hint System */
+.hint-container {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.hint-text-dynamic {
+    background: rgba(255, 184, 255, 0.1);
+    border: 2px dashed var(--ghost-pink);
+    padding: 20px;
+    margin: 15px 0;
+    font-size: 0.7rem;
+    color: var(--ghost-pink);
+    animation: fadeIn 0.5s ease;
+    text-align: left;
+}
+
+/* Collected Words Display */
+.collected-display {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+}
+
+.collected-label {
+    font-size: 0.6rem;
+    color: var(--ghost-cyan);
+    margin-bottom: 10px;
+}
+
+.collected-words-shuffled {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.collected-word {
+    font-size: 0.8rem;
+    color: var(--pacman-yellow);
+    padding: 8px 15px;
+    background: rgba(255, 255, 0, 0.1);
+    border: 2px solid var(--pacman-yellow);
+    border-radius: 5px;
+}
+
+.collected-word.placeholder {
+    color: #333;
+    border-color: #333;
+    background: transparent;
+}
+
+/* ============================================
+   404 Page Styles
+   ============================================ */
+
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    padding: 20px;
+}
+
+.error-code {
+    font-size: 8rem;
+    color: var(--ghost-red);
+    text-shadow: 0 0 30px var(--ghost-red);
+    animation: glitch 2s infinite;
+}
+
+@keyframes glitch {
+    0%, 90%, 100% { transform: translate(0); }
+    92% { transform: translate(-5px, 5px); }
+    94% { transform: translate(5px, -5px); }
+    96% { transform: translate(-5px, -5px); }
+    98% { transform: translate(5px, 5px); }
+}
+
+.error-message {
+    font-size: 1rem;
+    color: var(--ghost-cyan);
+    margin: 20px 0;
+}
+
+.error-ghost {
+    font-size: 5rem;
+    margin: 30px 0;
+    animation: float 2s ease-in-out infinite;
+}
+
+.back-btn {
+    margin-top: 30px;
+}
+
+/* ============================================
+   Broken Image Puzzle
+   ============================================ */
+
+.puzzle-image-container {
+    text-align: center;
+    margin: 30px 0;
+}
+
+/* ============================================
+   Final Answer Page
+   ============================================ */
+
+.final-container {
+    max-width: 800px;
+    margin: 100px auto;
+    padding: 40px;
+    text-align: center;
+}
+
+.word-slot {
+    background: #111;
+    border: 3px solid var(--maze-blue);
+    padding: 15px 25px;
+    min-width: 120px;
+    font-size: .8rem;
+}
+
+.word-slot.filled {
+    border-color: var(--pacman-yellow);
+    color: var(--pacman-yellow);
+}
+
+.final-input {
+    width: 100%;
+    max-width: 500px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1rem;
+    padding: 20px;
+    background: #111;
+    border: 3px solid var(--maze-blue);
+    color: var(--pacman-yellow);
+    text-align: center;
+    margin: 20px auto;
+    display: block;
+}
+
+.final-input:focus {
+    outline: none;
+    border-color: var(--pacman-yellow);
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+}
+
+/* ============================================
+   Victory / Game Over
+   ============================================ */
+
+.victory-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    padding: 20px;
+}
+
+.victory-title {
+    font-size: 2rem;
+    color: var(--pacman-yellow);
+    text-shadow: var(--text-glow);
+    margin-bottom: 30px;
+}
+
+.trophy {
+    font-size: 5rem;
+    margin: 20px 0;
+    animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+.gameover-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    padding: 20px;
+}
+
+.gameover-title {
+    font-size: 3rem;
+    color: var(--ghost-red);
+    text-shadow: 0 0 30px var(--ghost-red);
+    margin-bottom: 30px;
+    animation: flicker 0.5s infinite;
+}
+
+.gameover-ghost {
+    font-size: 8rem;
+    margin: 30px 0;
+}
+
+/* ============================================
+   Modal Styles
+   ============================================ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal {
+    background: #111;
+    padding: 40px;
+    max-width: 500px;
+    text-align: center;
+}
+
+.modal-title {
+    font-size: 1.2rem;
+    color: var(--pacman-yellow);
+    margin-bottom: 20px;
+}
+
+.modal-text {
+    font-size: 0.7rem;
+    color: #ccc;
+    margin-bottom: 30px;
+    line-height: 2;
+}
+
+/* ============================================
+   Leaderboard table
+   ============================================ */
+
+table th, table td {
+    border-bottom: 1px solid #1a1a1a;
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 1.8rem;
+    }
+
+    .game-hud {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .level-container {
+        margin: 80px 10px 20px;
+        padding: 20px;
+    }
+
+    .riddle-text {
+        font-size: 0.65rem;
+    }
+
+    .answer-input-group {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .error-code {
+        font-size: 4rem;
+    }
+
+    .life {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+.text-center { text-align: center; }
+.text-yellow { color: var(--pacman-yellow); }
+.text-cyan { color: var(--ghost-cyan); }
+.text-pink { color: var(--ghost-pink); }
+.text-red { color: var(--ghost-red); }
+.mt-20 { margin-top: 20px; }
+.mb-20 { margin-bottom: 20px; }
+.hidden { display: none !important; }

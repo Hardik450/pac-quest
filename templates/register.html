@@ -1,0 +1,100 @@
+<!-- templates/register.html -->
+{% extends "base.html" %}
+{% block title %}Register | PAC-HUNT{% endblock %}
+
+{% block body %}
+<div class="landing-container">
+    <h1 class="game-title" style="font-size:2.5rem;">PAC-HUNT</h1>
+    <p class="subtitle">PLAYER REGISTRATION</p>
+
+    <div class="pacman-container">
+        <div class="pacman"></div>
+        <div class="dots">
+            <div class="dot"></div><div class="dot"></div>
+            <div class="dot"></div><div class="dot"></div>
+        </div>
+    </div>
+
+    <div class="maze-border" style="max-width:500px;width:100%;margin:30px auto;padding:35px;">
+        <h3 style="color:var(--ghost-cyan);font-size:.8rem;margin-bottom:25px;">🎮 IDENTIFY YOURSELF, HUNTER</h3>
+
+        <div style="margin-bottom:20px;">
+            <label style="display:block;font-size:.55rem;color:var(--ghost-cyan);margin-bottom:8px;text-align:left;">
+                USERNAME
+            </label>
+            <input type="text" id="regUsername"
+                   class="answer-input" style="width:100%;text-align:left;font-size:.7rem;"
+                   placeholder="Enter unique username" maxlength="20" autocomplete="off">
+        </div>
+
+        <div style="margin-bottom:25px;">
+            <label style="display:block;font-size:.55rem;color:var(--ghost-cyan);margin-bottom:8px;text-align:left;">
+                EMAIL
+            </label>
+            <input type="email" id="regEmail"
+                   class="answer-input" style="width:100%;text-align:left;font-size:.7rem;text-transform:none;"
+                   placeholder="Enter your email" maxlength="50" autocomplete="off">
+        </div>
+
+        <div id="regError" style="display:none;color:var(--ghost-red);font-size:.55rem;margin-bottom:15px;padding:10px;background:rgba(255,0,0,.1);border:1px solid var(--ghost-red);border-radius:4px;"></div>
+        <div id="regSuccess" style="display:none;color:#00ff00;font-size:.55rem;margin-bottom:15px;padding:10px;background:rgba(0,255,0,.1);border:1px solid #00ff00;border-radius:4px;"></div>
+
+        <button id="registerBtn" class="submit-btn" style="width:100%;font-size:.8rem;padding:18px;">
+            REGISTER & PLAY 🎮
+        </button>
+    </div>
+
+    <p style="font-size:.5rem;color:#444;margin-top:10px;">
+        Already registered? Use the same username & email to continue.
+    </p>
+
+    <p style="margin-top:20px;">
+        <a href="{{ url_for('leaderboard') }}" style="color:var(--ghost-orange);font-size:.6rem;text-decoration:none;">🏆 VIEW LEADERBOARD</a>
+    </p>
+
+    <p style="margin-top:20px;font-size:.5rem;color:#666;">Made with 💛 by GDG ACEIT</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('registerBtn').addEventListener('click', async () => {
+    const username = document.getElementById('regUsername').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const errEl = document.getElementById('regError');
+    const sucEl = document.getElementById('regSuccess');
+    errEl.style.display = 'none';
+    sucEl.style.display = 'none';
+
+    if (!username || !email) {
+        errEl.textContent = 'Please fill in both fields!';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ username, email })
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+        sucEl.textContent = data.returning
+            ? `Welcome back, ${data.username}! Redirecting...`
+            : `Registered as ${data.username}! Redirecting...`;
+        sucEl.style.display = 'block';
+        setTimeout(() => { window.location.href = data.redirect; }, 1000);
+    } else {
+        errEl.textContent = data.error || 'Registration failed';
+        errEl.style.display = 'block';
+    }
+});
+
+['regUsername', 'regEmail'].forEach(id => {
+    document.getElementById(id).addEventListener('keypress', e => {
+        if (e.key === 'Enter') document.getElementById('registerBtn').click();
+    });
+});
+</script>
+{% endblock %}

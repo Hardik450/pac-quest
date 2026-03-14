@@ -1,0 +1,72 @@
+{% extends "level_base.html" %}
+{% block title %}Level 4 | PAC-HUNT{% endblock %}
+{% block level_title %}THE NETWORK WHISPERS{% endblock %}
+{% block answer_label %}WHAT'S THE FINAL WORD(S)?{% endblock %}
+
+{% block level_body %}
+<div class="story-box" style="text-align:center;margin-bottom:30px;">
+    <p style="font-size:.7rem;color:#888;line-height:2;">
+        The final piece is hidden in the invisible conversations<br>
+        that happen every time you click a button…
+    </p>
+</div>
+
+<div class="riddle-box maze-border">
+    <p class="riddle-text">
+        "When you click, a message flies,<br>
+        <span class="riddle-emphasis">Invisible</span> to untrained eyes.<br><br>
+        The Network knows what browsers say,<br>
+        In <span class="riddle-emphasis">headers</span> hidden, secrets lay.<br><br>
+        <span style="color:var(--pacman-yellow);">Click the button below,</span><br>
+        <span style="color:var(--pacman-yellow);">Then watch what travels in the glow.</span>"
+    </p>
+</div>
+
+<div class="tutorial-box">
+    <h4 class="tutorial-title">About Network Requests</h4>
+    <ul class="tutorial-steps">
+        <li>When websites communicate with servers, they send "requests"</li>
+        <li>Open DevTools (<span class="key-hint">F12</span>) and go to the <strong>Network</strong> tab</li>
+        <li>Click the button below WHILE the Network tab is open</li>
+        <li>You'll see a new request appear — click on it!</li>
+        <li>Look at the <strong>Request Headers</strong> or <strong>Response Headers</strong></li>
+        <li>Headers contain metadata — including sometimes… secrets!</li>
+    </ul>
+</div>
+
+<div class="action-buttons">
+    <button id="secretButton" class="btn btn-primary" style="font-size:.9rem;padding:25px 50px;">
+        🎯 CLICK ME (with Network tab open!)
+    </button>
+</div>
+<p style="text-align:center;font-size:.6rem;color:#666;margin:20px 0;">
+    Make sure Developer Tools → Network tab is open before clicking!
+</p>
+
+<div class="hint-container">
+    <button class="btn btn-hint hint-btn" data-hint="1">💡 HINT 1 (FREE)</button>
+    <button class="btn btn-hint hint-btn" data-hint="2">💡 HINT 2 (-30 SEC)</button>
+    <button class="btn btn-hint hint-btn" data-hint="3">💡 HINT 3 (-60 SEC)</button>
+
+    <div class="hint-text" id="hint1">Open DevTools (F12), then click on the "Network" tab. Now click the button and watch for a new request to appear.</div>
+    <div class="hint-text" id="hint2">After clicking, you'll see a request appear. Click on it and look at the Response or Console for clues.</div>
+    <div class="hint-text" id="hint3">Look in the Console — the secret words are: YOU UP</div>
+</div>
+{% endblock %}
+
+{% block level_scripts %}
+<script>
+document.getElementById('secretButton').addEventListener('click', function () {
+    fetch('/api/state')   // this call will appear in the Network tab
+        .then(r => r.json())
+        .then(() => {
+            console.log('%c🎮 PAC-HUNT SECRET 🎮', 'font-size:20px;color:#FFFF00;font-weight:bold;');
+            console.log('%c📡 The secret words are: YOU UP', 'color:#FFFF00;font-size:14px;background:#000;padding:5px;');
+        });
+
+    this.textContent = '✓ Request Sent! Check Network Tab';
+    this.style.background = '#00FFFF';
+    this.style.color = '#000';
+});
+</script>
+{% endblock %}

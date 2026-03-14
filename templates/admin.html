@@ -1,0 +1,420 @@
+<!-- templates/admin.html -->
+{% extends "base.html" %}
+{% block title %}Admin Dashboard | PAC-HUNT{% endblock %}
+
+{% block head %}
+<style>
+    .admin-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    @media (max-width: 900px) {
+        .admin-grid { grid-template-columns: 1fr; }
+    }
+    .admin-card {
+        background: #111;
+        border: 2px solid var(--maze-blue);
+        border-radius: 8px;
+        padding: 25px;
+    }
+    .admin-card h3 {
+        color: var(--ghost-cyan);
+        font-size: .75rem;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #222;
+    }
+    .status-indicator {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: .7rem;
+        font-family: 'Press Start 2P', cursive;
+    }
+    .status-waiting { background: rgba(255,255,0,.1); border: 2px solid var(--pacman-yellow); color: var(--pacman-yellow); }
+    .status-active { background: rgba(0,255,0,.15); border: 2px solid #00ff00; color: #00ff00; }
+    .status-paused { background: rgba(255,165,0,.1); border: 2px solid var(--ghost-orange); color: var(--ghost-orange); }
+    .status-finished { background: rgba(0,255,255,.1); border: 2px solid var(--ghost-cyan); color: var(--ghost-cyan); }
+
+    .admin-btn {
+        font-family: 'Press Start 2P', cursive;
+        font-size: .55rem;
+        padding: 12px 20px;
+        cursor: pointer;
+        border: none;
+        border-radius: 4px;
+        transition: all .2s ease;
+        margin: 5px;
+    }
+    .admin-btn:hover { transform: scale(1.03); }
+    .admin-btn-start { background: #00ff00; color: #000; }
+    .admin-btn-pause { background: var(--ghost-orange); color: #000; }
+    .admin-btn-resume { background: var(--ghost-cyan); color: #000; }
+    .admin-btn-finish { background: var(--ghost-pink); color: #000; }
+    .admin-btn-reset { background: #ff0000; color: #fff; }
+    .admin-btn-danger { background: #ff0000; color: #fff; font-size: .5rem; }
+
+    .stat-box {
+        text-align: center;
+        padding: 15px;
+        background: rgba(255,255,255,.03);
+        border: 1px solid #333;
+        border-radius: 6px;
+    }
+    .stat-number { font-size: 1.8rem; color: var(--pacman-yellow); }
+    .stat-label { font-size: .45rem; color: #888; margin-top: 5px; }
+
+    .msg-input {
+        font-family: 'Press Start 2P', cursive;
+        font-size: .55rem;
+        width: 100%;
+        padding: 12px;
+        background: #0a0a0a;
+        border: 2px solid #333;
+        color: #ccc;
+        border-radius: 4px;
+        margin: 10px 0;
+    }
+    .msg-input:focus { border-color: var(--ghost-cyan); outline: none; }
+
+    .player-list {
+        max-height: 300px;
+        overflow-y: auto;
+        font-size: .5rem;
+    }
+    .player-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 10px;
+        border-bottom: 1px solid #1a1a1a;
+        color: #ccc;
+    }
+    .player-row:hover { background: rgba(255,255,0,.03); }
+
+    .mini-leaderboard { font-size: .5rem; }
+    .mini-leaderboard td, .mini-leaderboard th { padding: 8px 10px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div style="padding:30px 20px;max-width:1200px;margin:0 auto;">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;flex-wrap:wrap;gap:15px;">
+        <div>
+            <h1 style="color:var(--pacman-yellow);font-size:1.3rem;margin-bottom:8px;">🎮 ADMIN DASHBOARD</h1>
+            <p style="font-size:.5rem;color:#666;">PAC-HUNT Event Control Panel</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            {% if db_ok %}
+            <span style="font-size:.45rem;padding:5px 12px;background:rgba(0,255,0,.1);border:1px solid #00ff00;color:#00ff00;border-radius:20px;">● DB CONNECTED</span>
+            {% else %}
+            <span style="font-size:.45rem;padding:5px 12px;background:rgba(255,0,0,.1);border:1px solid #ff0000;color:#ff0000;border-radius:20px;">● DB OFFLINE</span>
+            {% endif %}
+            <button onclick="adminLogout()" class="admin-btn" style="background:#333;color:var(--ghost-red);font-size:.45rem;">LOGOUT</button>
+        </div>
+    </div>
+
+    <div class="admin-grid">
+        <!-- ═══ EVENT CONTROL ═══ -->
+        <div class="admin-card" style="grid-column: 1 / -1;">
+            <h3>🎯 EVENT CONTROL</h3>
+
+            <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
+                <div>
+                    <span style="font-size:.5rem;color:#888;margin-right:10px;">STATUS:</span>
+                    <span id="currentStatus" class="status-indicator status-{{ event_status.status }}">
+                        {{ event_status.status | upper }}
+                    </span>
+                </div>
+                <div id="startedAtInfo" style="font-size:.45rem;color:#666;">
+                    {% if event_status.started_at %}
+                    Started: {{ event_status.started_at }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div id="eventControls" style="margin-bottom:20px;">
+                {% if event_status.status == 'waiting' %}
+                <button onclick="startEvent()" class="admin-btn admin-btn-start">▶ START EVENT</button>
+                {% elif event_status.status == 'active' %}
+                <button onclick="pauseEvent()" class="admin-btn admin-btn-pause">⏸ PAUSE EVENT</button>
+                <button onclick="finishEvent()" class="admin-btn admin-btn-finish">🏁 END EVENT</button>
+                {% elif event_status.status == 'paused' %}
+                <button onclick="resumeEvent()" class="admin-btn admin-btn-resume">▶ RESUME EVENT</button>
+                <button onclick="finishEvent()" class="admin-btn admin-btn-finish">🏁 END EVENT</button>
+                {% elif event_status.status == 'finished' %}
+                <button onclick="resetEvent()" class="admin-btn admin-btn-reset">🔄 RESET TO WAITING</button>
+                {% endif %}
+            </div>
+
+            <!-- Broadcast Message -->
+            <div>
+                <label style="font-size:.5rem;color:var(--ghost-cyan);display:block;margin-bottom:5px;">BROADCAST MESSAGE TO PLAYERS:</label>
+                <input type="text" id="broadcastMsg" class="msg-input"
+                       value="{{ event_status.message }}"
+                       placeholder="Enter message for waiting players...">
+                <button onclick="sendMessage()" class="admin-btn" style="background:var(--ghost-cyan);color:#000;">📢 SEND MESSAGE</button>
+            </div>
+        </div>
+
+        <!-- ═══ LIVE STATS ═══ -->
+        <div class="admin-card">
+            <h3>📊 LIVE STATS</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+                <div class="stat-box">
+                    <div class="stat-number" id="statPlayers">{{ player_count }}</div>
+                    <div class="stat-label">REGISTERED</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="statCompletions">-</div>
+                    <div class="stat-label">COMPLETIONS</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="statScorecards">-</div>
+                    <div class="stat-label">IN PROGRESS</div>
+                </div>
+            </div>
+            <p id="statsUpdated" style="font-size:.4rem;color:#444;margin-top:15px;">Auto-refreshes every 5s</p>
+        </div>
+
+        <!-- ═══ REGISTERED PLAYERS ═══ -->
+        <div class="admin-card">
+            <h3>👥 REGISTERED PLAYERS (<span id="playerCountHeader">{{ player_count }}</span>)</h3>
+            <div class="player-list" id="playerList">
+                {% if players %}
+                {% for p in players %}
+                <div class="player-row">
+                    <span style="color:var(--pacman-yellow);">{{ p.username }}</span>
+                    <span>{{ p.email }}</span>
+                    <span style="color:#666;">{{ p.registered_at }}</span>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p style="font-size:.55rem;color:#666;text-align:center;padding:20px;">No players yet</p>
+                {% endif %}
+            </div>
+            <button onclick="refreshPlayers()" class="admin-btn" style="background:#333;color:var(--ghost-cyan);margin-top:10px;font-size:.45rem;">🔄 REFRESH</button>
+        </div>
+
+        <!-- ═══ MINI LEADERBOARD ═══ -->
+        <div class="admin-card" style="grid-column: 1 / -1;">
+            <h3>🏆 LIVE LEADERBOARD (TOP 10)</h3>
+            <div id="miniLeaderboard">
+                {% if leaderboard %}
+                <table class="mini-leaderboard" style="width:100%;border-collapse:collapse;text-align:center;">
+                    <thead>
+                        <tr style="color:var(--ghost-cyan);border-bottom:2px solid var(--maze-blue);">
+                            <th>#</th><th>PLAYER</th><th>SCORE</th><th>TIME</th><th>LIVES</th><th>HINTS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in leaderboard[:10] %}
+                        <tr style="border-bottom:1px solid #1a1a1a;color:{% if loop.index == 1 %}var(--pacman-yellow){% elif loop.index <= 3 %}var(--ghost-orange){% else %}#888{% endif %};">
+                            <td>{% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}</td>
+                            <td>{{ entry.name }}</td>
+                            <td style="font-weight:bold;">{{ entry.score }}</td>
+                            <td>{{ entry.display_time }}</td>
+                            <td>{{ entry.lives_remaining }} ❤️</td>
+                            <td>{{ entry.hints_used | default(0) }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="font-size:.55rem;color:#666;text-align:center;padding:20px;">No completions yet</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ═══ DANGER ZONE ═══ -->
+        <div class="admin-card" style="grid-column: 1 / -1;border-color:var(--ghost-red);">
+            <h3 style="color:var(--ghost-red);">⚠️ DANGER ZONE</h3>
+            <p style="font-size:.5rem;color:#888;margin-bottom:15px;line-height:1.8;">
+                These actions are irreversible. Use with extreme caution.
+            </p>
+            <button onclick="nukeEverything()" class="admin-btn admin-btn-danger">
+                💀 NUKE ALL DATA (Players, Scores, Everything)
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Admin API helpers ──
+
+async function adminAction(url, body = {}) {
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!data.ok) {
+            alert('Error: ' + (data.error || 'Unknown error'));
+            return null;
+        }
+        return data;
+    } catch (err) {
+        alert('Network error: ' + err.message);
+        return null;
+    }
+}
+
+async function startEvent() {
+    const msg = document.getElementById('broadcastMsg').value || 'The hunt has begun! GO GO GO! 🎮';
+    if (!confirm('Start the event? All waiting players will be released to play!')) return;
+    const data = await adminAction('/api/admin/event/start', { message: msg });
+    if (data) location.reload();
+}
+
+async function pauseEvent() {
+    const msg = document.getElementById('broadcastMsg').value || 'The event is temporarily paused. Hold tight!';
+    const data = await adminAction('/api/admin/event/pause', { message: msg });
+    if (data) location.reload();
+}
+
+async function resumeEvent() {
+    const msg = document.getElementById('broadcastMsg').value || 'The hunt continues! 🎮';
+    const data = await adminAction('/api/admin/event/resume', { message: msg });
+    if (data) location.reload();
+}
+
+async function finishEvent() {
+    if (!confirm('End the event? Players currently playing can still finish, but no new games can start.')) return;
+    const msg = document.getElementById('broadcastMsg').value || 'The hunt is over! Check the leaderboard for results! 🏆';
+    const data = await adminAction('/api/admin/event/finish', { message: msg });
+    if (data) location.reload();
+}
+
+async function resetEvent() {
+    if (!confirm('Reset to waiting state? The event will need to be started again.')) return;
+    const data = await adminAction('/api/admin/event/reset');
+    if (data) location.reload();
+}
+
+async function sendMessage() {
+    const msg = document.getElementById('broadcastMsg').value;
+    if (!msg) { alert('Enter a message first'); return; }
+    const data = await adminAction('/api/admin/event/message', { message: msg });
+    if (data) {
+        showAdminFeedback('Message sent! 📢');
+    }
+}
+
+async function nukeEverything() {
+    const c1 = prompt('Type NUKE to confirm deleting ALL data:');
+    if (c1 !== 'NUKE') return;
+    const c2 = confirm('FINAL WARNING: This will delete ALL players, scores, and game data. Are you absolutely sure?');
+    if (!c2) return;
+    const data = await adminAction('/api/admin/nuke', { confirm: 'NUKE_EVERYTHING' });
+    if (data) {
+        alert('All data has been nuked. 💀');
+        location.reload();
+    }
+}
+
+async function adminLogout() {
+    await adminAction('/api/admin/logout');
+    window.location.href = '/admin/login';
+}
+
+// ── Live stats refresh ──
+
+async function refreshStats() {
+    try {
+        const res = await fetch('/api/admin/event/status');
+        const data = await res.json();
+        if (!data.ok) return;
+
+        // Update stats
+        if (data.stats) {
+            document.getElementById('statPlayers').textContent = data.stats.total_players || 0;
+            document.getElementById('statCompletions').textContent = data.stats.total_completions || 0;
+            document.getElementById('statScorecards').textContent = data.stats.total_scorecards || 0;
+        }
+
+        // Update status indicator
+        const statusEl = document.getElementById('currentStatus');
+        if (statusEl && data.event_status) {
+            const s = data.event_status.status;
+            statusEl.textContent = s.toUpperCase();
+            statusEl.className = 'status-indicator status-' + s;
+        }
+
+        // Update mini leaderboard
+        if (data.leaderboard_top && data.leaderboard_top.length > 0) {
+            let html = `<table class="mini-leaderboard" style="width:100%;border-collapse:collapse;text-align:center;">
+                <thead><tr style="color:var(--ghost-cyan);border-bottom:2px solid var(--maze-blue);">
+                    <th>#</th><th>PLAYER</th><th>SCORE</th><th>TIME</th><th>LIVES</th><th>HINTS</th>
+                </tr></thead><tbody>`;
+            data.leaderboard_top.forEach((entry, i) => {
+                const rank = i + 1;
+                const color = rank === 1 ? 'var(--pacman-yellow)' : rank <= 3 ? 'var(--ghost-orange)' : '#888';
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+                html += `<tr style="border-bottom:1px solid #1a1a1a;color:${color};">
+                    <td>${medal}</td><td>${entry.name}</td>
+                    <td style="font-weight:bold;">${entry.score}</td>
+                    <td>${entry.display_time}</td>
+                    <td>${entry.lives_remaining} ❤️</td>
+                    <td>${entry.hints_used || 0}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('miniLeaderboard').innerHTML = html;
+        }
+
+        document.getElementById('statsUpdated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+    } catch (err) {
+        console.error('Stats refresh failed:', err);
+    }
+}
+
+async function refreshPlayers() {
+    try {
+        const res = await fetch('/api/admin/players');
+        const data = await res.json();
+        if (!data.ok) return;
+
+        document.getElementById('playerCountHeader').textContent = data.count;
+
+        if (data.players.length === 0) {
+            document.getElementById('playerList').innerHTML =
+                '<p style="font-size:.55rem;color:#666;text-align:center;padding:20px;">No players yet</p>';
+            return;
+        }
+
+        let html = '';
+        data.players.forEach(p => {
+            html += `<div class="player-row">
+                <span style="color:var(--pacman-yellow);">${p.username}</span>
+                <span>${p.email || ''}</span>
+                <span style="color:#666;">${p.registered_at || ''}</span>
+            </div>`;
+        });
+        document.getElementById('playerList').innerHTML = html;
+    } catch (err) {
+        console.error('Player refresh failed:', err);
+    }
+}
+
+function showAdminFeedback(message) {
+    const el = document.createElement('div');
+    el.textContent = message;
+    el.style.cssText = `position:fixed;top:20px;right:20px;padding:15px 25px;
+        background:#00ff00;color:#000;font-family:'Press Start 2P',cursive;
+        font-size:.6rem;z-index:3000;border-radius:4px;animation:slideUp .3s ease;`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+}
+
+// Auto-refresh stats every 5 seconds
+setInterval(refreshStats, 5000);
+refreshStats();
+</script>
+{% endblock %}

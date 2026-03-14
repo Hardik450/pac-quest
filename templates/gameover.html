@@ -1,0 +1,35 @@
+<!-- templates/gameover.html -->
+{% extends "base.html" %}
+{% block title %}GAME OVER | PAC-HUNT{% endblock %}
+
+{% block body %}
+<div class="gameover-container">
+    <div class="gameover-ghost">👻</div>
+    <h1 class="gameover-title">GAME OVER</h1>
+    {% if username %}
+    <p style="font-size:.7rem;color:var(--ghost-cyan);margin:10px 0;">
+        Better luck next time, <span style="color:var(--pacman-yellow);">{{ username }}</span>!
+    </p>
+    {% endif %}
+    <p style="font-size:.8rem;color:var(--ghost-cyan);margin:20px 0;">The ghosts got you!</p>
+    <p style="font-size:.7rem;color:#666;margin:20px 0;line-height:2;">
+        But don't worry, every great hunter<br>fails before they succeed!
+    </p>
+    <div class="action-buttons" style="margin-top:40px;">
+        <button class="btn btn-primary" id="retryBtn">INSERT COIN TO RETRY</button>
+        <a href="{{ url_for('leaderboard') }}" class="btn btn-secondary">🏆 LEADERBOARD</a>
+    </div>
+    <p class="blink" style="font-size:.6rem;color:var(--ghost-red);margin-top:40px;">PRESS START TO CONTINUE</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('retryBtn').addEventListener('click', async () => {
+    const res = await fetch('/api/reset', { method:'POST',
+        headers:{'Content-Type':'application/json'}, body:'{}' });
+    const data = await res.json();
+    window.location.href = data.redirect;
+});
+</script>
+{% endblock %}

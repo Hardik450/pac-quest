@@ -1,0 +1,177 @@
+<!-- templates/level.html -->
+{% extends "base.html" %}
+{% block title %}Level {{ level_num }} | PAC-HUNT{% endblock %}
+
+{% block head %}
+<style>
+.hint-text-dynamic {
+    background: rgba(255, 184, 255, 0.1);
+    border: 2px dashed var(--ghost-pink);
+    padding: 20px;
+    margin: 15px 0;
+    font-size: 0.7rem;
+    color: var(--ghost-pink);
+    animation: fadeIn 0.5s ease;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- HUD -->
+<div class="game-hud">
+    <div class="hud-section">
+        <span class="hud-label">LIVES</span>
+        <div class="lives" id="lives"></div>
+    </div>
+    <div class="hud-section">
+        <span class="hud-label">TIME</span>
+        <span class="timer" id="timer">05:00</span>
+    </div>
+    <div class="hud-section">
+        <span class="hud-label">LEVEL</span>
+        <div class="level-indicator" id="levelIndicator"></div>
+    </div>
+    <div class="hud-section">
+        <span class="hud-label" style="font-size:.5rem;">{{ username }}</span>
+    </div>
+</div>
+
+<!-- Level Content -->
+<div class="level-container maze-border">
+    <div class="level-header">
+        <p class="level-number">LEVEL {{ level_num }} OF {{ total_levels }}</p>
+        <h2 class="level-title">{{ content.title }}</h2>
+    </div>
+
+    <!-- Collected Words -->
+    <div class="collected-display">
+        <span class="collected-label">COLLECTED FRAGMENTS:</span>
+        <div class="collected-words-shuffled" id="collectedDisplay"></div>
+    </div>
+
+    <!-- Story -->
+    <div class="story-box" style="text-align:center;margin-bottom:30px;">
+        <p style="font-size:.7rem;color:#888;line-height:2;">{{ content.story }}</p>
+    </div>
+
+    <!-- Riddle -->
+    <div class="riddle-box maze-border">
+        <p class="riddle-text">
+            {% for part in content.riddle %}
+                {% if part[0] == 'text' %}{{ part[1] }}
+                {% elif part[0] == 'emphasis' %}<span class="riddle-emphasis">{{ part[1] }}</span>
+                {% elif part[0] == 'highlight' %}<span style="color:var(--pacman-yellow);">{{ part[1] }}</span>
+                {% elif part[0] == 'br' %}<br>
+                {% endif %}
+            {% endfor %}
+        </p>
+    </div>
+
+    <!-- Tutorial (if present) -->
+    {% if content.tutorial %}
+    <div class="tutorial-box">
+        <h4 class="tutorial-title">{{ content.tutorial.title }}</h4>
+        <ul class="tutorial-steps">
+            {% for step in content.tutorial.steps %}
+            <li>{{ step | safe }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Action button (level 1 & 3) -->
+    {% if content.get('has_action_link') %}
+    <div class="action-buttons">
+        <a href="{{ content.action_url }}"
+           {% if content.get('action_external') %}target="_blank" rel="noopener noreferrer"{% endif %}
+           class="btn btn-primary">{{ content.action_text }}</a>
+    </div>
+    {% endif %}
+
+    <!-- Broken image (level 2) — secret is in alt attribute -->
+    {% if content.get('has_broken_image') %}
+    <div class="puzzle-image-container">
+        <p style="font-size:.7rem;color:var(--ghost-cyan);margin-bottom:15px;">Here's an important image… or is it?</p>
+        <img src="/static/images/secret_word:that.png"
+             
+             id="secretImage"
+             style="width:300px;height:200px;border:3px dashed #333;background:#111;display:block;margin:0 auto;">
+        <p style="font-size:.6rem;color:#444;margin-top:15px;">Hmm, the image won't load… How strange 🤔</p>
+    </div>
+    {% endif %}
+
+    <!-- Secret button (level 4) -->
+    {% if content.get('has_secret_button') %}
+    <div class="action-buttons">
+        <button id="secretButton" class="btn btn-primary" style="font-size:.9rem;padding:25px 50px;">
+            🎯 CLICK ME
+        </button>
+    </div>
+    <p style="text-align:center;font-size:.6rem;color:#666;margin:20px 0;">
+        you must hear the voice of that talks through your network
+    </p>
+    {% endif %}
+
+    <!-- Hints — dynamically loaded from server -->
+    <div class="hint-container">
+        <button class="btn btn-hint hint-btn" data-hint="1">💡 HINT 1 (FREE)</button>
+        <button class="btn btn-hint hint-btn" data-hint="2">💡 HINT 2 (-30 SEC)</button>
+        <button class="btn btn-hint hint-btn" data-hint="3">💡 HINT 3 (-60 SEC)</button>
+        <div id="hintContent"></div>
+    </div>
+
+    <!-- Answer Section -->
+    <div class="answer-section">
+        <label class="answer-label">{{ content.answer_label }}</label>
+        <div class="answer-input-group">
+            <input type="text" id="answerInput" class="answer-input"
+                   placeholder="?????" maxlength="30" autocomplete="off">
+            <button id="submitAnswer" class="submit-btn">SUBMIT</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal maze-border">
+        <h3 class="modal-title" id="modalTitle"></h3>
+        <p class="modal-text" id="modalText"></p>
+        <button class="btn btn-primary" id="modalBtn">CONTINUE</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const INIT_STATE = {
+    lives:          {{ lives }},
+    time_remaining: {{ time_remaining }},
+    current_level:  {{ level_num }},
+    total_levels:   {{ total_levels }},
+    collected_words: {{ collected_words | tojson }},
+};
+window.PH_LEVEL = {{ level_num }};
+initHUD(INIT_STATE);
+startClientTimer(INIT_STATE.time_remaining);
+
+{% if content.get('has_secret_button') %}
+document.getElementById('secretButton').addEventListener('click', function () {
+    fetch('/api/secret-ping', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: '{}'
+    }).then(r => {
+        console.log('%c🎮 PAC-HUNT 🎮', 'font-size:16px;color:#FFFF00;font-weight:bold;');
+        console.log('%cCheck the RESPONSE HEADERS of the "secret-ping" request in the Network tab!', 'color:#00FFFF;font-size:12px;');
+        return r.json();
+    }).then(data => {
+        console.log('%cServer says: ' + data.message, 'color:#FFB8FF;font-size:11px;');
+    });
+
+    this.textContent = '✓ Request Sent! Check Network Tab → Response Headers';
+    this.style.background = '#00FFFF';
+    this.style.color = '#000';
+});
+{% endif %}
+</script>
+{% endblock %}

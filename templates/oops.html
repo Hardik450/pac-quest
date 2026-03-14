@@ -1,0 +1,73 @@
+<!-- templates/oops.html -->
+{% extends "base.html" %}
+{% block title %}404 - Page Not Found | PAC-HUNT{% endblock %}
+
+{% block body %}
+<!-- HUD -->
+<div class="game-hud">
+    <div class="hud-section">
+        <span class="hud-label">LIVES</span>
+        <div class="lives" id="lives"></div>
+    </div>
+    <div class="hud-section">
+        <span class="hud-label">TIME</span>
+        <span class="timer" id="timer">05:00</span>
+    </div>
+    <div class="hud-section">
+        <span class="hud-label">LEVEL</span>
+        <div class="level-indicator" id="levelIndicator"></div>
+    </div>
+</div>
+
+<div class="error-container" style="margin-top:80px;">
+    <div class="error-code">404</div>
+    <p class="error-message">OOPS! THIS PAGE GOT EATEN BY PAC-MAN!</p>
+    <div class="error-ghost">👻</div>
+    <p style="font-size:.7rem;color:#666;margin:20px 0;line-height:2;">
+        The page you're looking for seems to have vanished<br>into the digital void…
+    </p>
+    <p style="font-size:.6rem;color:#444;margin:20px 0;">
+        <em>Or did it? Maybe there's more here than meets the eye… 👀</em>
+    </p>
+    <p style="font-size:.55rem;color:#222;margin:10px 0;">
+        Some secrets hide in plain sight...
+    </p>
+
+    <!-- The secret is hidden here with CSS — same color as background, only visible on text select -->
+    <p class="hidden-secret" style="font-size:1rem;color:#000;margin:30px 0;padding:20px;user-select:text;
+       -webkit-user-select:text;-moz-user-select:text;">
+        The secret word is: I 
+    </p>
+
+    <a href="{{ url_for('level', level_num=1) }}" class="btn btn-secondary back-btn">← BACK TO LEVEL 1</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+/* Text is invisible normally but visible when selected */
+.hidden-secret {
+    color: #000000 !important;
+    background: #000000;
+}
+.hidden-secret::selection {
+    background: var(--pacman-yellow);
+    color: #000;
+}
+.hidden-secret::-moz-selection {
+    background: var(--pacman-yellow);
+    color: #000;
+}
+</style>
+<script>
+const INIT_STATE = {
+    lives:          {{ lives }},
+    time_remaining: {{ time_remaining }},
+    current_level:  {{ current_level }},
+    total_levels:   {{ total_levels }},
+    collected_words: {{ collected_words | tojson }},
+};
+initHUD(INIT_STATE);
+startClientTimer(INIT_STATE.time_remaining);
+</script>
+{% endblock %}

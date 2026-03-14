@@ -1,0 +1,86 @@
+<!-- templates/index.html -->
+{% extends "base.html" %}
+{% block title %}PAC-HUNT | The Ultimate Treasure Hunt{% endblock %}
+
+{% block body %}
+<div class="landing-container">
+    <h1 class="game-title">PAC-HUNT</h1>
+    <p class="subtitle">THE ULTIMATE TREASURE HUNT</p>
+
+    <div style="font-size:.6rem;color:var(--ghost-cyan);margin-bottom:10px;">
+        Playing as: <span style="color:var(--pacman-yellow);">{{ username }}</span>
+        <a href="#" id="logoutLink" style="color:var(--ghost-red);font-size:.5rem;margin-left:15px;text-decoration:none;">[LOGOUT]</a>
+    </div>
+
+    <div class="pacman-container">
+        <div class="pacman"></div>
+        <div class="dots">
+            <div class="dot"></div><div class="dot"></div>
+            <div class="dot"></div><div class="dot"></div>
+        </div>
+    </div>
+
+    <div class="ghosts">
+        <div class="ghost blinky"><div class="ghost-eyes"><div class="ghost-eye"></div><div class="ghost-eye"></div></div></div>
+        <div class="ghost pinky"><div class="ghost-eyes"><div class="ghost-eye"></div><div class="ghost-eye"></div></div></div>
+        <div class="ghost inky"><div class="ghost-eyes"><div class="ghost-eye"></div><div class="ghost-eye"></div></div></div>
+        <div class="ghost clyde"><div class="ghost-eyes"><div class="ghost-eye"></div><div class="ghost-eye"></div></div></div>
+    </div>
+
+    <div class="rules-box maze-border" style="margin:30px auto;padding:25px;max-width:600px;">
+        <h3 style="color:var(--ghost-cyan);font-size:.9rem;margin-bottom:20px;">📜 RULES OF THE HUNT</h3>
+        <ul style="list-style:none;text-align:left;">
+            <li style="margin:15px 0;font-size:.65rem;color:#ccc;"><span style="color:var(--pacman-yellow);">►</span> Complete 4 levels to find the secret phrase</li>
+            <li style="margin:15px 0;font-size:.65rem;color:#ccc;"><span style="color:var(--pacman-yellow);">►</span> You have <span style="color:var(--ghost-red);">5 MINUTES</span> per level</li>
+            <li style="margin:15px 0;font-size:.65rem;color:#ccc;"><span style="color:var(--pacman-yellow);">►</span> You have <span style="color:var(--pacman-yellow);">3 LIVES</span> — lose one if time runs out</li>
+            <li style="margin:15px 0;font-size:.65rem;color:#ccc;"><span style="color:var(--pacman-yellow);">►</span> Hints available, but some cost time!</li>
+            <li style="margin:15px 0;font-size:.65rem;color:#ccc;"><span style="color:var(--pacman-yellow);">►</span> Collect words and arrange them to form the secret phrase</li>
+            <li style="margin:15px 0;font-size:.65rem;color:#ccc;"><span style="color:var(--pacman-yellow);">►</span> Leaderboard updates LIVE after every level!</li>
+            <li style="margin:15px 0;font-size:.65rem;color:#ccc;"><span style="color:var(--pacman-yellow);">►</span> Think like a developer 🧑‍💻</li>
+        </ul>
+    </div>
+
+    {% if in_progress %}
+    <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;">
+        <button class="start-btn blink" id="startGame">NEW GAME</button>
+        <button class="start-btn" id="resumeGame" style="color:var(--ghost-cyan);border-color:var(--ghost-cyan);">
+            ▶ RESUME LEVEL {{ current_level }}
+        </button>
+    </div>
+    {% else %}
+    <button class="start-btn blink" id="startGame">INSERT COIN TO START</button>
+    {% endif %}
+
+    <p style="margin-top:20px;">
+        <a href="{{ url_for('leaderboard') }}" style="color:var(--ghost-orange);font-size:.6rem;text-decoration:none;">🏆 LIVE LEADERBOARD</a>
+    </p>
+
+    <p style="margin-top:20px;font-size:.5rem;color:#666;">Made with 💛 by GDG ACEIT</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('startGame')?.addEventListener('click', async () => {
+    const res = await fetch('/api/start', { method: 'POST',
+        headers: {'Content-Type':'application/json'}, body: '{}' });
+    const data = await res.json();
+    if (data.ok) window.location.href = data.redirect;
+});
+
+document.getElementById('resumeGame')?.addEventListener('click', async () => {
+    const res = await fetch('/api/resume', { method: 'POST',
+        headers: {'Content-Type':'application/json'}, body: '{}' });
+    const data = await res.json();
+    if (data.ok) window.location.href = data.redirect;
+});
+
+document.getElementById('logoutLink')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const res = await fetch('/api/logout', { method: 'POST',
+        headers: {'Content-Type':'application/json'}, body: '{}' });
+    const data = await res.json();
+    window.location.href = data.redirect;
+});
+</script>
+{% endblock %}

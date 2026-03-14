@@ -1,0 +1,133 @@
+<!-- templates/victory.html -->
+{% extends "base.html" %}
+{% block title %}VICTORY! | PAC-HUNT{% endblock %}
+
+{% block body %}
+<div class="victory-container" id="finalChallenge">
+    <p class="level-number">FINAL CHALLENGE</p>
+    <h1 class="level-title" style="font-size:1.5rem;">COMBINE THE WORDS!</h1>
+    <p style="font-size:.6rem;color:var(--ghost-cyan);margin:10px 0;">
+        Player: <span style="color:var(--pacman-yellow);">{{ username }}</span>
+    </p>
+
+    <div id="shuffledWordContainer" style="margin:40px 0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;"></div>
+
+    <p style="font-size:.7rem;color:var(--ghost-cyan);margin:20px 0;line-height:2;">
+        Arrange the words above into a famous phrase and enter it below!
+    </p>
+
+    <input type="text" id="finalAnswer" class="final-input"
+           placeholder="ENTER THE COMPLETE PHRASE" autocomplete="off">
+
+    <button id="finalSubmit" class="submit-btn" style="margin-top:20px;">CLAIM VICTORY! 🏆</button>
+
+    <div id="finalError" style="display:none;color:var(--ghost-red);font-size:.6rem;margin-top:15px;"></div>
+</div>
+
+<div class="victory-container hidden" id="victoryScreen">
+    <div class="trophy">🏆</div>
+    <h1 class="victory-title">CONGRATULATIONS!</h1>
+    <p style="font-size:.8rem;color:var(--ghost-cyan);margin:20px 0;">
+        Well done, <span style="color:var(--pacman-yellow);">{{ username }}</span>!
+        You've completed the PAC-HUNT!
+    </p>
+    <p style="font-size:.7rem;color:#888;margin:20px 0;">But wait… there's one more surprise…</p>
+    <p style="font-size:1rem;color:var(--pacman-yellow);margin:30px 0;animation:blink 1s infinite;">🎉 YOU'VE BEEN RICK-ROLLED! 🎉</p>
+
+    <div id="scoreDisplay" style="margin:20px 0;"></div>
+
+    <button id="redirectBtn" class="btn btn-primary" style="margin:20px 0;padding:12px 24px;font-size:.9rem;">WATCH THE VIDEO 🎬</button>
+
+    <div class="action-buttons">
+        <a href="" id="scorecardLink" class="btn btn-secondary">📋 VIEW SCORECARD</a>
+        <a href="{{ url_for('leaderboard') }}" class="btn btn-secondary">🏆 LEADERBOARD</a>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">PLAY AGAIN</a>
+    </div>
+    <p style="font-size:.5rem;color:#666;margin-top:40px;">Made with 💛 by GDG ACEIT</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const words = {{ collected_words | tojson }};
+    const container = document.getElementById('shuffledWordContainer');
+    const displayWords = words.filter(w => w);
+    const shuffled = [...displayWords].sort(() => Math.random() - 0.5);
+
+    shuffled.forEach(w => {
+        const el = document.createElement('div');
+        el.className = 'word-slot filled';
+        el.textContent = w;
+        container.appendChild(el);
+    });
+
+    const RICKROLL = 'https://youtu.be/HlBYdiXdUa8?si=JiYUzXLOEotPOa0Y';
+
+    document.getElementById('finalSubmit').addEventListener('click', async () => {
+        const answer = document.getElementById('finalAnswer').value.trim();
+        if (!answer) return;
+
+        const res = await fetch('/api/final', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ answer })
+        });
+        const data = await res.json();
+        if (data.correct) {
+            document.getElementById('finalChallenge').classList.add('hidden');
+            document.getElementById('victoryScreen').classList.remove('hidden');
+            document.getElementById('redirectBtn').onclick = () => window.open(RICKROLL, '_blank');
+
+            if (data.scorecard_url) {
+                document.getElementById('scorecardLink').href = data.scorecard_url;
+            }
+
+            // Fetch and show score
+            if (data.session_id) {
+                fetch('/api/scorecard/' + data.session_id)
+                    .then(r => r.json())
+                    .then(sc => {
+                        if (sc.ok) {
+                            document.getElementById('scoreDisplay').innerHTML =
+                                `<div class="maze-border" style="padding:20px;margin:15px auto;max-width:400px;">
+                                    <p style="font-size:1.5rem;color:var(--pacman-yellow);">SCORE: ${sc.scorecard.score}</p>
+                                    <p style="font-size:.6rem;color:var(--ghost-cyan);margin-top:10px;">
+                                        Time: ${sc.scorecard.display_time} | Lives: ${sc.scorecard.lives_remaining}/3 | Hints: ${sc.scorecard.hints_used}
+                                    </p>
+                                </div>`;
+                        }
+                    })
+                    .catch(err => console.error('Scorecard fetch failed:', err));
+            }
+
+            createConfetti();
+            setTimeout(() => window.open(RICKROLL, '_blank'), 3000);
+        } else {
+            const err = document.getElementById('finalError');
+            err.style.display = 'block';
+            err.textContent = 'WRONG ORDER OR PHRASE! TRY AGAIN.';
+            document.getElementById('finalAnswer').classList.add('shake');
+            setTimeout(() => document.getElementById('finalAnswer').classList.remove('shake'), 500);
+        }
+    });
+
+    document.getElementById('finalAnswer').addEventListener('keypress', e => {
+        if (e.key === 'Enter') document.getElementById('finalSubmit').click();
+    });
+
+    function createConfetti() {
+        const colors = ['#FFFF00','#FF0000','#00FFFF','#FFB8FF','#FFB852'];
+        for (let i = 0; i < 100; i++) {
+            const c = document.createElement('div');
+            c.style.cssText = `position:fixed;width:10px;height:10px;
+                background:${colors[Math.floor(Math.random()*colors.length)]};
+                top:-10px;left:${Math.random()*100}vw;
+                animation:fall ${2+Math.random()*3}s linear forwards;z-index:3000;`;
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 5000);
+        }
+    }
+})();
+</script>
+{% endblock %}
