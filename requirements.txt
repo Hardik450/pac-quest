@@ -9,4 +9,4 @@ pymongo[srv]==4.6.3
 python-dotenv==1.0.1
 
 # WSGI Server (Recommended for production)
-gunicorn==21.2.0
+gunicorn==22.0.0
