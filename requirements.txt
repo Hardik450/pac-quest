@@ -6,7 +6,7 @@ Flask==3.0.3
 pymongo[srv]==4.6.3
 
 # Environment Variables
-python-dotenv==1.0.1
+python-dotenv==1.2.2
 
 # WSGI Server (Recommended for production)
 gunicorn==21.2.0
